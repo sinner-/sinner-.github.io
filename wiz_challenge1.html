@@ -1,0 +1,60 @@
+<h1 id="solving-the-wiz-ultimate-cloud-security-championship-challenge-1-with-chatgpt-4o">Solving the Wiz &quot;ULTIMATE CLOUD SECURITY CHAMPIONSHIP&quot; (Challenge #1) with ChatGPT 4o</h1>
+<p>Even though I had just last night read Chris Nicholson&#39;s <a href="https://vonnik.substack.com/p/how-to-take-your-brain-back">How to Take Back Control of Your Brain</a> post, today I somehow ended up scrolling on LinkedIn where <a href="https://www.wiz.io/">Wiz</a> had posted:</p>
+<blockquote>
+<p>🚨 THE ULTIMATE CLOUD SECURITY CHAMPIONSHIP begins today! </p>
+<p>12 monthly challenges. </p>
+<p>12 top researchers. </p>
+<p>One leaderboard.</p>
+<p>Challenge #1 is LIVE now, created by Scott Piper. Each month brings a new security challenge designed by leading cloud experts.</p>
+<p>Solve challenges, climb the leaderboard, earn your certificate 🏆</p>
+</blockquote>
+<p>So I headed on over to <a href="https://cloudsecuritychampionship.com/">https://cloudsecuritychampionship.com/</a> and clicked on the first challenge <code>Perimeter Leak</code> which gives you a web based shell and the following information:</p>
+<blockquote>
+<p> After weeks of exploits and privilege escalation you&#39;ve gained access to what you hope is the final server that you can then use to extract out the secret flag from an S3 bucket.</p>
+<p>It won&#39;t be easy though. The target uses an AWS data perimeter to restrict access to the bucket contents. </p>
+</blockquote>
+<p>plus a bonus quote from Scott Piper:</p>
+<blockquote>
+<p>&quot;AWS data perimeters are a very strong security mitigation, but I wanted to show a way in which things can go wrong using an important feature of AWS that is common in larger applications, but that many do not have experience with.&quot;</p>
+</blockquote>
+<p>There are some hint buttons too! But I didn&#39;t notice that at the time and thought it&#39;d be an interesting experiment to see whether ChatGPT&#39;s basic model (4o) would be able to capture this flag.</p>
+<h2 id="the-setup">The Setup</h2>
+<ul>
+<li>You get access to a remote shell</li>
+<li>The goal is to retrieve a flag stored in a private S3 bucket behind a data perimeter.</li>
+<li>Outbound access is extremely limited.</li>
+<li>You’re told nothing about the architecture — the challenge is meant to simulate post-exploitation blind enumeration.</li>
+</ul>
+<h2 id="can-ai-do-it-">Can AI do it?</h2>
+<p>I wanted to see how far I could get using just ChatGPT 4o with minimal interpretation or scaffolding.</p>
+<p>I pasted the challenge description, and then just started pasting the remote shell output into the session — one command and result at a time.</p>
+<p>To my surprise, within about 30 minutes of back-and-forth, the model had helped me recover the flag.</p>
+<h2 id="what-happened">What happened</h2>
+<p>My quandry at this point is I&#39;d really prefer to simply share the chat but I don&#39;t want to rain on the parade by divulging the vulnerability and methodology.</p>
+<p>So I&#39;ll try and summarise each of the tasks that ChatGPT was able to accomplish with not much more input from me than copy/pasting what it told me to run and the subsequent output:</p>
+<ol>
+<li>Enumerating all available endpoints</li>
+<li>Looking for high-value endpoints</li>
+<li>Interrogating high-value endpoints and identifying promising output</li>
+<li>Identifying a specific web application security vulnerability in one of the endpoints</li>
+<li>Coming up with a strategy to exploit the vulnerability</li>
+<li>Enumerating exploitation attempts and evaluating the implications of their output</li>
+<li>Changing strategy based on those implications</li>
+<li>Evaluating large amounts of output for valuable information</li>
+<li>Knowing how AWS works well enough to suggest the next best action for each piece of returned information</li>
+<li>Writing helper code to allow faster iteration through exploitation attempts</li>
+</ol>
+<p>I&#39;m being deliberately opaque here to avoid disclosing details of the challenge.</p>
+<h2 id="stats">Stats</h2>
+<p>Compiling some statistics on the chat in lieu of providing the chat itself:</p>
+<ul>
+<li>Total prompts in the chat: 71</li>
+<li>Me pasting the output of commands I got asked to run (raw <code>curl</code>, <code>aws</code>, or shell outputs, error messages (e.g. <code>403 Forbidden</code>, <code>400 Bad Request</code>, <code>AccessDenied</code>, encoding): 31</li>
+<li>Nudges/strategic hints (“None of those worked but we are close.”, “Remember you can’t talk to IMDS directly…”, “What VPC are we in?”, etc): 9</li>
+<li>Follow-up questions (“ok so what needs to be done?”, “generate for me”, “write the command for me”, etc): 18</li>
+<li>Miscellanous: 13</li>
+</ul>
+<h2 id="reflections">Reflections</h2>
+<p>It was quite an interesting experience. I definitely got the feeling I wasn&#39;t a necessary part of the interaction, at least until a certain point where the GPT got a bit confused about which host it wanted information from, where I was able to provide a short nudge to bring it back on task.</p>
+<p>The other surprising thing to me was the speed. For humans, the first two O&#39;s in the <a href="https://en.wikipedia.org/wiki/OODA_loop">OODA loop</a> can take  up time, but the whole thing felt like a speedrun because the model would immediately point out important information or context inside the huge JSON blobs the API was returning (one API response was <em>106kb</em> - thankyou giant context window), validate what it found and move on to the next step. Every failed attempt to exploit had a quick tweak to try next. I think it would have taken me probably a day to get through everything that it did.</p>
+
